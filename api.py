@@ -1,6 +1,7 @@
 from flask import Flask, render_template, jsonify, request
 import nbformat
 from nbconvert import HTMLExporter
+from nbconvert.preprocessors import ExecutePreprocessor
 import os
 
 app = Flask(__name__)
@@ -12,18 +13,28 @@ NOTEBOOK_DIR = "notebooks"
 def get_notebooks():
     return [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith(".ipynb")]
 
-# Convertir notebook a HTML
-def convert_notebook_to_html(notebook_path):
+# Ejecutar y convertir notebook a HTML
+def execute_and_convert_notebook(notebook_path):
     try:
+        # Leer el notebook
         with open(notebook_path, 'r', encoding='utf-8') as f:
             notebook_content = nbformat.read(f, as_version=4)
 
+        # Ejecutar el notebook
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+        ep.preprocess(notebook_content, {'metadata': {'path': NOTEBOOK_DIR}})
+
+        # Guardar los resultados ejecutados en el archivo
+        with open(notebook_path, 'w', encoding='utf-8') as f:
+            nbformat.write(notebook_content, f)
+
+        # Convertir a HTML
         html_exporter = HTMLExporter()
         html_exporter.exclude_input = True  # Ocultar el código y mostrar solo resultados
         body, resources = html_exporter.from_notebook_node(notebook_content)
         return body
     except Exception as e:
-        print(f"Error al convertir el notebook {notebook_path}: {str(e)}")
+        print(f"Error al ejecutar/convertir el notebook {notebook_path}: {str(e)}")
         return None
 
 @app.route('/')
@@ -35,7 +46,7 @@ def index():
 def view_notebook(notebook_name):
     notebook_path = os.path.join(NOTEBOOK_DIR, notebook_name)
     try:
-        notebook_html = convert_notebook_to_html(notebook_path)
+        notebook_html = execute_and_convert_notebook(notebook_path)
         return render_template('notebook_viewer.html', notebook_html=notebook_html)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
