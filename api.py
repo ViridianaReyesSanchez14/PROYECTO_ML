@@ -48,8 +48,11 @@ def execute_and_convert_notebook(notebook_path):
                 for output in cell['outputs']:
                     # Capturar gráficos en formato PNG
                     if output['output_type'] in ['display_data', 'execute_result'] and 'image/png' in output['data']:
-                        img_base64 = base64.b64encode(output['data']['image/png']).decode('utf-8')
-                        filtered_content.append(f"<img src='data:image/png;base64,{img_base64}' alt='Gráfico'>")
+                        try:
+                            img_base64 = base64.b64encode(output['data']['image/png']).decode('utf-8')
+                            filtered_content.append(f"<img src='data:image/png;base64,{img_base64}' alt='Gráfico'>")
+                        except Exception as e:
+                            print(f"Error procesando imagen: {e}")
                     # Capturar métricas clave
                     elif output['output_type'] == 'stream' and 'text' in output:
                         metrics = ['f1_score', 'accuracy', 'precision', 'recall', 'roc_auc']
@@ -57,7 +60,7 @@ def execute_and_convert_notebook(notebook_path):
                             filtered_content.append(f"<p>{output['text']}</p>")
 
         # Generar HTML con el contenido filtrado
-        html_content = """<html><body><h1>Resultados del Notebook</h1>"""
+        html_content = "<html><body><h1>Resultados del Notebook</h1>"
         html_content += "".join(filtered_content)
         html_content += "</body></html>"
 
@@ -90,4 +93,3 @@ def upload_notebook():
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
-
