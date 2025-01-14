@@ -28,11 +28,27 @@ def execute_and_convert_notebook(notebook_path):
         with open(notebook_path, 'w', encoding='utf-8') as f:
             nbformat.write(notebook_content, f)
 
-        # Convertir a HTML
-        html_exporter = HTMLExporter()
-        html_exporter.exclude_input = True  # Ocultar el código y mostrar solo resultados
-        body, resources = html_exporter.from_notebook_node(notebook_content)
-        return body
+        # Filtrar el contenido para incluir solo gráficos, imágenes y métricas clave
+        filtered_cells = []
+        for cell in notebook_content['cells']:
+            if cell['cell_type'] == 'code' and 'outputs' in cell:
+                for output in cell['outputs']:
+                    if output['output_type'] == 'display_data' and 'image/png' in output['data']:
+                        filtered_cells.append(output['data']['image/png'])
+                    elif output['output_type'] == 'execute_result' and 'text/plain' in output['data']:
+                        if 'f1_score' in output['data']['text/plain'] or 'accuracy' in output['data']['text/plain']:
+                            filtered_cells.append(output['data']['text/plain'])
+
+        # Generar HTML con el contenido filtrado
+        html_content = """<html><body><h1>Resultados del Notebook</h1>"""
+        for item in filtered_cells:
+            if isinstance(item, str):
+                html_content += f"<p>{item}</p>"
+            else:
+                html_content += f"<img src='data:image/png;base64,{item}' alt='Gráfico'>"
+        html_content += "</body></html>"
+        
+        return html_content
     except Exception as e:
         print(f"Error al ejecutar/convertir el notebook {notebook_path}: {str(e)}")
         return None
@@ -67,3 +83,4 @@ def add_notebook():
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
+
