@@ -1,20 +1,16 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
 import nbformat
 from nbconvert import HTMLExporter
+import os
 
 app = Flask(__name__)
 
-# Lista de notebooks
-notebooks = [
-    "3501_RegresionLineal.ipynb",
-    "3501_Regresion_Logistica.ipynb",
-    "3501_Visualizacion-de-Datos.ipynb",
-    "3501_Preparacion-del-DataSet.ipynb",
-    "3501_Creacion-de-Transformadores-y-Pipelines-Personalizados.ipynb",
-    "3501_Evaluacion-de-Resultados.ipynb",
-    "3501_Support-Vector-Machine.ipynb",
-    "Arboles_de_decision.ipynb"  # Nuevo notebook agregado
-]
+# Directorio de notebooks
+NOTEBOOK_DIR = "notebooks"
+
+# Lista dinámica de notebooks
+def get_notebooks():
+    return [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith(".ipynb")]
 
 # Convertir notebook a HTML
 def convert_notebook_to_html(notebook_path):
@@ -32,16 +28,31 @@ def convert_notebook_to_html(notebook_path):
 
 @app.route('/')
 def index():
+    notebooks = get_notebooks()
     return render_template('index.html', notebooks=notebooks)
 
 @app.route('/notebook/<notebook_name>')
 def view_notebook(notebook_name):
-    notebook_path = f"notebooks/{notebook_name}"
+    notebook_path = os.path.join(NOTEBOOK_DIR, notebook_name)
     try:
         notebook_html = convert_notebook_to_html(notebook_path)
         return render_template('notebook_viewer.html', notebook_html=notebook_html)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/add_notebook', methods=['POST'])
+def add_notebook():
+    notebook_name = request.json.get("notebook_name")
+    if not notebook_name.endswith(".ipynb"):
+        notebook_name += ".ipynb"
+    notebook_path = os.path.join(NOTEBOOK_DIR, notebook_name)
+
+    # Crear un notebook vacío si no existe
+    if not os.path.exists(notebook_path):
+        nb = nbformat.v4.new_notebook()
+        with open(notebook_path, 'w', encoding='utf-8') as f:
+            nbformat.write(nb, f)
+    return jsonify({"message": "Notebook creado", "notebook": notebook_name})
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
