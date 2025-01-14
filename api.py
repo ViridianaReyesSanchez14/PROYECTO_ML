@@ -24,6 +24,7 @@ notebooks = [
 ]
 
 # Ejecutar y convertir notebook a HTML
+
 def execute_and_convert_notebook(notebook_path):
     try:
         # Leer el notebook
@@ -53,6 +54,13 @@ def execute_and_convert_notebook(notebook_path):
                             filtered_content.append(f"<img src='data:image/png;base64,{img_base64}' alt='Gráfico'>")
                         except Exception as e:
                             print(f"Error procesando imagen: {e}")
+                    # Capturar SVG
+                    elif output['output_type'] in ['display_data', 'execute_result'] and 'image/svg+xml' in output['data']:
+                        try:
+                            svg_content = output['data']['image/svg+xml']
+                            filtered_content.append(f"<div>{svg_content}</div>")
+                        except Exception as e:
+                            print(f"Error procesando SVG: {e}")
                     # Capturar métricas clave
                     elif output['output_type'] == 'stream' and 'text' in output:
                         metrics = ['f1_score', 'accuracy', 'precision', 'recall', 'roc_auc']
@@ -60,7 +68,7 @@ def execute_and_convert_notebook(notebook_path):
                             filtered_content.append(f"<p>{output['text']}</p>")
 
         # Generar HTML con el contenido filtrado
-        html_content = "<html><body><h1>Resultados del Notebook</h1>"
+        html_content = """<html><body><h1>Resultados del Notebook</h1>"""
         html_content += "".join(filtered_content)
         html_content += "</body></html>"
 
