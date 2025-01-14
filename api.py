@@ -10,9 +10,18 @@ app = Flask(__name__)
 # Directorio de notebooks
 NOTEBOOK_DIR = "notebooks"
 
-# Lista dinámica de notebooks
-def get_notebooks():
-    return [f for f in os.listdir(NOTEBOOK_DIR) if f.endswith(".ipynb")]
+# Lista de notebooks disponibles (incluyendo el nuevo notebook)
+notebooks = [
+    "3501_RegresionLineal.ipynb",
+    "3501_Regresion_Logistica.ipynb",
+    "3501_Visualizacion-de-Datos.ipynb",
+    "3501_Preparacion-del-DataSet.ipynb",
+    "3501_Creacion-de-Transformadores-y-Pipelines-Personalizados.ipynb",
+    "3501_Evaluacion-de-Resultados.ipynb",
+    "3501_Support-Vector-Machine.ipynb",
+    "Arboles_de_decision.ipynb",
+    "evaluation_transfers_notebook.ipynb"  # Nuevo notebook agregado
+]
 
 # Ejecutar y convertir notebook a HTML
 def execute_and_convert_notebook(notebook_path):
@@ -59,7 +68,6 @@ def execute_and_convert_notebook(notebook_path):
 
 @app.route('/')
 def index():
-    notebooks = get_notebooks()
     return render_template('index.html', notebooks=notebooks)
 
 @app.route('/notebook/<notebook_name>')
@@ -71,19 +79,14 @@ def view_notebook(notebook_name):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/add_notebook', methods=['POST'])
-def add_notebook():
-    notebook_name = request.json.get("notebook_name")
-    if not notebook_name.endswith(".ipynb"):
-        notebook_name += ".ipynb"
-    notebook_path = os.path.join(NOTEBOOK_DIR, notebook_name)
-
-    # Crear un notebook vacío si no existe
-    if not os.path.exists(notebook_path):
-        nb = nbformat.v4.new_notebook()
-        with open(notebook_path, 'w', encoding='utf-8') as f:
-            nbformat.write(nb, f)
-    return jsonify({"message": "Notebook creado", "notebook": notebook_name})
+@app.route('/upload_notebook', methods=['POST'])
+def upload_notebook():
+    file = request.files['file']
+    if file and file.filename.endswith('.ipynb'):
+        notebook_path = os.path.join(NOTEBOOK_DIR, file.filename)
+        file.save(notebook_path)
+        return jsonify({"message": "Notebook subido exitosamente", "notebook": file.filename})
+    return jsonify({"error": "Archivo no válido"}), 400
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
