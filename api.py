@@ -3,6 +3,7 @@ import nbformat
 from nbconvert import HTMLExporter
 from nbconvert.preprocessors import ExecutePreprocessor
 import os
+import base64
 
 app = Flask(__name__)
 
@@ -29,29 +30,29 @@ def execute_and_convert_notebook(notebook_path):
             nbformat.write(notebook_content, f)
 
         # Filtrar el contenido para incluir solo gráficos, imágenes y métricas clave
-        filtered_cells = []
+        filtered_content = []
         for cell in notebook_content['cells']:
             if cell['cell_type'] == 'code' and 'outputs' in cell:
                 for output in cell['outputs']:
-                    if output['output_type'] == 'display_data' and 'image/png' in output['data']:
-                        filtered_cells.append(output['data']['image/png'])
-                    elif output['output_type'] == 'execute_result' and 'text/plain' in output['data']:
-                        if 'f1_score' in output['data']['text/plain'] or 'accuracy' in output['data']['text/plain']:
-                            filtered_cells.append(output['data']['text/plain'])
+                    # Capturar gráficos en formato PNG
+                    if output['output_type'] in ['display_data', 'execute_result'] and 'image/png' in output['data']:
+                        img_base64 = base64.b64encode(output['data']['image/png']).decode('utf-8')
+                        filtered_content.append(f"<img src='data:image/png;base64,{img_base64}' alt='Gráfico'>")
+                    # Capturar métricas clave
+                    elif output['output_type'] == 'stream' and 'text' in output:
+                        metrics = ['f1_score', 'accuracy', 'precision', 'recall', 'roc_auc']
+                        if any(metric in output['text'].lower() for metric in metrics):
+                            filtered_content.append(f"<p>{output['text']}</p>")
 
         # Generar HTML con el contenido filtrado
         html_content = """<html><body><h1>Resultados del Notebook</h1>"""
-        for item in filtered_cells:
-            if isinstance(item, str):
-                html_content += f"<p>{item}</p>"
-            else:
-                html_content += f"<img src='data:image/png;base64,{item}' alt='Gráfico'>"
+        html_content += "".join(filtered_content)
         html_content += "</body></html>"
-        
+
         return html_content
     except Exception as e:
         print(f"Error al ejecutar/convertir el notebook {notebook_path}: {str(e)}")
-        return None
+        return f"<html><body><h1>Error</h1><p>{str(e)}</p></body></html>"
 
 @app.route('/')
 def index():
