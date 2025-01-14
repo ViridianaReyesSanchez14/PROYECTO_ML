@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Learning Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f9f9f9;
+        }
+
+        header {
+            background: linear-gradient(to right, #3b82f6, #9333ea);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+
+        .task-container {
+            margin: 30px auto;
+            width: 90%;
+            max-width: 1200px;
+        }
+
+        .task-container h2 {
+            font-size: 1.5rem;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .button-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+            gap: 15px;
+        }
+
+        .button {
+            width: 100%; /* Ocupa todo el ancho disponible */
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .regresion {
+            background: #ef4444;
+            color: white;
+        }
+
+        .visualizacion {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .preparacion {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .transformadores {
+            background: #6366f1;
+            color: white;
+        }
+
+        .evaluacion {
+            background: #10b981;
+            color: white;
+        }
+
+        .nuevo {
+            background: #8b5cf6;
+            color: white;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            background: #111827;
+            color: #e5e7eb;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: 50px;
+        }
+
+        footer a {
+            color: #3b82f6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Machine Learning Dashboard</h1>
+        <p>Explora las herramientas y resultados de tus modelos de ML</p>
+    </header>
+
+    <main class="task-container">
+        <h2>Selecciona una tarea</h2>
+        <div class="button-container">
+            {% for notebook in notebooks %}
+                <button class="button {{ 'regresion' if 'Regresion' in notebook else 'visualizacion' if 'Visualizacion' in notebook else 'preparacion' if 'Preparacion' in notebook else 'transformadores' if 'Transformadores' in notebook else 'evaluacion' if 'Evaluacion' in notebook else 'nuevo' }}" onclick="loadNotebook('{{ notebook }}')">
+                    {{ notebook.split('_')[1].replace('-', ' ').title() }}
+                </button>
+            {% endfor %}
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Machine Learning. </p>
+    </footer>
+
+    <script>
+        function loadNotebook(notebookName) {
+            window.location.href = '/notebook/' + notebookName;
+        }
+    </script>
+</body>
+</html>
+
+
