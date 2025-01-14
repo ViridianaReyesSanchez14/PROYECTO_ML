@@ -4,7 +4,7 @@ from nbconvert import HTMLExporter
 
 app = Flask(__name__)
 
-# Lista de notebooks, incluyendo uno nuevo
+# Lista de notebooks
 notebooks = [
     "3501_RegresionLineal.ipynb",
     "3501_Regresion_Logistica.ipynb",
@@ -23,6 +23,7 @@ def convert_notebook_to_html(notebook_path):
             notebook_content = nbformat.read(f, as_version=4)
 
         html_exporter = HTMLExporter()
+        html_exporter.exclude_input = True  # Ocultar el código y mostrar solo resultados
         body, resources = html_exporter.from_notebook_node(notebook_content)
         return body
     except Exception as e:
@@ -44,4 +45,3 @@ def view_notebook(notebook_name):
 
 if __name__ == '__main__':
     app.run(debug=True, port=8000)
-
