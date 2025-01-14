@@ -10,7 +10,7 @@ gunicorn==23.0.0
 jsonpointer==2.1
 
 liac-arff==2.5.0
-mkl-service==2.4.0
+mkl-service==2.4.2
 panadas==0.2
 protobuf==3.20.3
 pyasn1-modules==0.2.8
