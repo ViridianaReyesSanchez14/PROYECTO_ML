@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -44,12 +43,12 @@
 
         .button-container {
             display: grid;
-            grid-template-columns: 1fr 1fr; /* Dos columnas iguales */
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
 
         .button {
-            width: 100%; /* Ocupa todo el ancho disponible */
+            width: 100%;
             padding: 15px 30px;
             border-radius: 25px;
             font-size: 1rem;
@@ -57,36 +56,6 @@
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-        }
-
-        .regresion {
-            background: #ef4444;
-            color: white;
-        }
-
-        .visualizacion {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .preparacion {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .transformadores {
-            background: #6366f1;
-            color: white;
-        }
-
-        .evaluacion {
-            background: #10b981;
-            color: white;
-        }
-
-        .nuevo {
-            background: #8b5cf6;
-            color: white;
         }
 
         .button:hover {
@@ -118,10 +87,15 @@
         <h2>Selecciona una tarea</h2>
         <div class="button-container">
             {% for notebook in notebooks %}
-                <button class="button {{ 'regresion' if 'Regresion' in notebook else 'visualizacion' if 'Visualizacion' in notebook else 'preparacion' if 'Preparacion' in notebook else 'transformadores' if 'Transformadores' in notebook else 'evaluacion' if 'Evaluacion' in notebook else 'nuevo' }}" onclick="loadNotebook('{{ notebook }}')">
-                    {{ notebook.split('_')[1].replace('-', ' ').title() }}
+                <button class="button" onclick="loadNotebook('{{ notebook }}')">
+                    {{ notebook }}
                 </button>
             {% endfor %}
+        </div>
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="button" style="background: #8b5cf6; color: white;" onclick="addNewNotebook()">
+                Agregar Nuevo Notebook
+            </button>
         </div>
     </main>
 
@@ -133,8 +107,28 @@
         function loadNotebook(notebookName) {
             window.location.href = '/notebook/' + notebookName;
         }
+
+        function addNewNotebook() {
+            const notebookName = prompt("Introduce el nombre del nuevo notebook (sin extensión):");
+            if (notebookName) {
+                fetch('/add_notebook', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ notebook_name: notebookName })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    location.reload();
+                })
+                .catch(error => {
+                    alert("Error al agregar el notebook: " + error);
+                });
+            }
+        }
     </script>
 </body>
 </html>
-
 
