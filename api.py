@@ -22,8 +22,11 @@ def execute_and_convert_notebook(notebook_path):
             notebook_content = nbformat.read(f, as_version=4)
 
         # Ejecutar el notebook
-        ep = ExecutePreprocessor(timeout=600)  # Sin especificar kernel_name
-        ep.preprocess(notebook_content, {'metadata': {'path': NOTEBOOK_DIR}})
+        ep = ExecutePreprocessor(timeout=600, kernel_name='python3')
+        try:
+            ep.preprocess(notebook_content, {'metadata': {'path': NOTEBOOK_DIR}})
+        except Exception as e:
+            print(f"Error ejecutando el notebook {notebook_path}: {str(e)}")
 
         # Guardar los resultados ejecutados en el archivo
         with open(notebook_path, 'w', encoding='utf-8') as f:
